@@ -1,4 +1,4 @@
-package com.challenge.invoiceapi.controller;
+package com.challenge.invoice_api.controller;
 
 import com.challenge.invoice_api.dto.request.InvoiceRequestDTO;
 import com.challenge.invoice_api.dto.response.InvoiceResponseDTO;
