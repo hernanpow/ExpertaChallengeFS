@@ -65,6 +65,11 @@ const useInvoiceForm = () => {
     return true;
   };
 
+  const addCustomer = (newCustomer) => {
+  setCustomers((prev) => [...prev, newCustomer]);
+  setSelectedCustomerId(String(newCustomer.id));
+};
+
   const submitInvoice = async () => {
     setError(null);
     setSuccess(false);
@@ -106,6 +111,7 @@ const useInvoiceForm = () => {
     removeItem,
     calculateTotal,
     submitInvoice,
+    addCustomer
   };
 };
 

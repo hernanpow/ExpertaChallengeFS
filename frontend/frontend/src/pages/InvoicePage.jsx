@@ -1,3 +1,5 @@
+import { useState } from 'react';
+import CustomerForm from '../components/CustomerForm';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -5,8 +7,18 @@ import CustomerSelector from '../components/CustomerSelector';
 import InvoiceItemForm from '../components/InvoiceItemForm';
 import InvoiceItemTable from '../components/InvoiceItemTable';
 import useInvoiceForm from '../hooks/useInvoiceForm';
+import { Badge } from '@/components/ui/badge';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 const InvoicePage = () => {
+    
   const {
     customers,
     selectedCustomerId,
@@ -19,7 +31,11 @@ const InvoicePage = () => {
     removeItem,
     calculateTotal,
     submitInvoice,
+    addCustomer
   } = useInvoiceForm();
+
+  const [showCustomerForm, setShowCustomerForm] = useState(false);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
@@ -42,19 +58,34 @@ const InvoicePage = () => {
             <AlertDescription>Invoice submitted successfully!</AlertDescription>
           </Alert>
         )}
-
         {/* Customer Selector */}
         <Card>
-          <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-lg">Customer</CardTitle>
-          </CardHeader>
-          <CardContent>
+            <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowCustomerForm((prev) => !prev)}
+            >
+            {showCustomerForm ? 'Cancel' : '+ Add Customer'}
+            </Button>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-4">
             <CustomerSelector
-              customers={customers}
-              selectedCustomerId={selectedCustomerId}
-              onCustomerChange={setSelectedCustomerId}
+            customers={customers}
+            selectedCustomerId={selectedCustomerId}
+            onCustomerChange={setSelectedCustomerId}
             />
-          </CardContent>
+            {showCustomerForm && (
+            <CustomerForm
+                onCustomerCreated={(newCustomer) => {
+                addCustomer(newCustomer);
+                setShowCustomerForm(false);
+                }}
+                onCancel={() => setShowCustomerForm(false)}
+            />
+            )}
+        </CardContent>
         </Card>
 
         {/* Invoice Item Form */}
@@ -69,9 +100,16 @@ const InvoicePage = () => {
 
         {/* Invoice Items Table */}
         <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Invoice Items</CardTitle>
-          </CardHeader>
+           <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle className="text-lg">
+                  Invoice Items
+                 </CardTitle>
+            {items.length > 0 && (
+      <Badge variant="secondary">
+        {items.length} {items.length === 1 ? 'item' : 'items'}
+      </Badge>
+    )}
+  </CardHeader>
           <CardContent>
             <InvoiceItemTable
               items={items}
@@ -89,15 +127,47 @@ const InvoicePage = () => {
           </CardContent>
         </Card>
 
-        {/* Submit Button */}
         <Button
-          onClick={submitInvoice}
-          disabled={loading}
-          className="w-full"
-          size="lg"
+  onClick={() => setShowConfirmDialog(true)}
+  disabled={loading}
+  className="w-full"
+  size="lg"
+>
+  Submit Invoice
+</Button>
+
+    {/* Confirm Dialog */}
+    <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+    <DialogContent>
+        <DialogHeader>
+        <DialogTitle>Confirm Invoice</DialogTitle>
+        <DialogDescription>
+            You are about to submit an invoice with{' '}
+            <strong>{items.length} {items.length === 1 ? 'item' : 'items'}</strong>{' '}
+            for a total of{' '}
+            <strong>${calculateTotal().toFixed(2)}</strong>.
+            Are you sure you want to proceed?
+        </DialogDescription>
+        </DialogHeader>
+        <DialogFooter className="gap-2">
+        <Button
+            variant="outline"
+            onClick={() => setShowConfirmDialog(false)}
         >
-          {loading ? 'Submitting...' : 'Submit Invoice'}
+            Cancel
         </Button>
+        <Button
+            onClick={() => {
+            setShowConfirmDialog(false);
+            submitInvoice();
+            }}
+            disabled={loading}
+        >
+            {loading ? 'Submitting...' : 'Confirm'}
+        </Button>
+        </DialogFooter>
+    </DialogContent>
+    </Dialog>
 
       </div>
     </div>
